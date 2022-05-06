@@ -173,6 +173,7 @@
 <p class="caption" role="heading"><span class="caption-text">Environments</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../environments/atari/">Atari</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../environments/atari/adventure/">Adventure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/air_raid/">Air Raid</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/alien/">Alien</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/amidar/">Amidar</a></li>
@@ -191,6 +192,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/centipede/">Centipede</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/chopper_command/">Chopper Command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/crazy_climber/">Crazy Climber</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../environments/atari/defender/">Defender</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/demon_attack/">Demon Attack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/double_dunk/">Double Dunk</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/elevator_action/">Elevator Action</a></li>
@@ -200,6 +202,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/frostbite/">Frostbite</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/gopher/">Gopher</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/gravitar/">Gravitar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../environments/atari/hero/">Hero</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/ice_hockey/">IceHockey</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/jamesbond/">Jamesbond</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../environments/atari/journey_escape/">JourneyEscape</a></li>
@@ -327,7 +330,7 @@ You can clone gym-examples to play with the code that are presented here. We rec
     envs/
       __init__.py
       grid_world.py
-     wrappers/
+    wrappers/
       __init__.py
       relative_position.py
 </pre></div>
@@ -341,7 +344,7 @@ target on the grid that has been placed randomly at the beginning of the episode
 <li><p>Observations provide the location of the target and agent.</p></li>
 <li><p>There are 4 actions in our environment, corresponding to the movements “right”, “up”, “left”, and “down”.</p></li>
 <li><p>A done signal is issued as soon as the agent has navigated to the grid cell where the target is located.</p></li>
-<li><p>Rewards are binary and sparse, meaning that the immediate reward is always zero, unless the agent has reached the target, then it is 1</p></li>
+<li><p>Rewards are binary and sparse, meaning that the immediate reward is always zero, unless the agent has reached the target, then it is 1.</p></li>
 </ul>
 <p>An episode in this environment (with <code class="docutils literal notranslate"><span class="pre">size=5</span></code>) might look like this:</p>
 <img src="https://user-images.githubusercontent.com/15806078/160155148-253a05ae-25c1-4fcf-9a72-f72362a64225.gif" width="35%"/>
@@ -351,7 +354,7 @@ target on the grid that has been placed randomly at the beginning of the episode
 <h3>Declaration and Initialization<a class="headerlink" href="#declaration-and-initialization" title="Permalink to this headline">#</a></h3>
 <p>Our custom environment will inherit from the abstract class <code class="docutils literal notranslate"><span class="pre">gym.Env</span></code>. You shouldn’t forget to add the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> attribute to you class.
 There, you should specify the render-modes that are supported by your environment (e.g. <code class="docutils literal notranslate"><span class="pre">"human"</span></code>, <code class="docutils literal notranslate"><span class="pre">"rgb_array"</span></code>, <code class="docutils literal notranslate"><span class="pre">"ansi"</span></code>)
-and the framerate at which your environment should be rendered.
+and the framerate at which your environment should be rendered. Every environment should support<code class="docutils literal notranslate"><span class="pre">None</span></code> as render-mode; you don’t need to add it in the metadata.
 In <code class="docutils literal notranslate"><span class="pre">GridWorldEnv</span></code>, we will support the modes “rgb_array” and “human” and render at 4 FPS.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method of our environment will accept the integer <code class="docutils literal notranslate"><span class="pre">size</span></code>, that determines the size of the square grid.
 We will set up some variables for rendering and define <code class="docutils literal notranslate"><span class="pre">self.observation_space</span></code> and <code class="docutils literal notranslate"><span class="pre">self.action_space</span></code>.
@@ -362,14 +365,16 @@ Since we have 4 actions in our environment (“right”, “up”, “left”, �
 Here is the declaration of <code class="docutils literal notranslate"><span class="pre">GridWorldEnv</span></code> and the implementation of <code class="docutils literal notranslate"><span class="pre">__init__</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">from</span> <span class="nn">gym</span> <span class="kn">import</span> <span class="n">spaces</span>
-<span class="kn">import</span> <span class="nn">pygame</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">gym.utils.renderer</span> <span class="kn">import</span> <span class="n">Renderer</span>
 
 <span class="k">class</span> <span class="nc">GridWorldEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">):</span>
     <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"render_modes"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"human"</span><span class="p">,</span> <span class="s2">"rgb_array"</span><span class="p">],</span> <span class="s2">"render_fps"</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">render_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">render_mode</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">render_mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"render_modes"</span><span class="p">]</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>  <span class="c1"># The size of the square grid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span> <span class="o">=</span> <span class="mi">512</span>  <span class="c1"># The size of the PyGame window</span>
 
@@ -382,7 +387,7 @@ Here is the declaration of <code class="docutils literal notranslate"><span clas
             <span class="p">}</span>
         <span class="p">)</span>
 
-        <span class="c1"># We have 4 actions, corresponding to "right", "up", "left", "down", "right"</span>
+        <span class="c1"># We have 4 actions, corresponding to "right", "up", "left", "down"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
 
         <span class="sd">"""</span>
@@ -401,11 +406,20 @@ Here is the declaration of <code class="docutils literal notranslate"><span clas
 <span class="sd">        If human-rendering is used, `self.window` will be a reference</span>
 <span class="sd">        to the window that we draw to. `self.clock` will be a clock that is used</span>
 <span class="sd">        to ensure that the environment is rendered at the correct framerate in</span>
-<span class="sd">        human-mode. They will remain `None` until human-mode is used for the</span>
-<span class="sd">        first time.</span>
+<span class="sd">        human-mode.</span>
 <span class="sd">        """</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clock</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">render_mode</span> <span class="o">==</span> <span class="s2">"human:</span>
+            <span class="kn">import</span> <span class="nn">pygame</span>  <span class="c1"># import here to avoid pygame dependency with no render</span>
+
+            <span class="n">pygame</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_mode</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clock</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Clock</span><span class="p">()</span>
+                
+        <span class="c1"># The following line uses the util class Renderer to gather a collection of frames </span>
+        <span class="c1"># using a method that computes a single frame. We will define _render_frame below.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renderer</span> <span class="o">=</span> <span class="n">Renderer</span><span class="p">(</span><span class="n">render_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_frame</span><span class="p">)</span>
+            
 </pre></div>
 </div>
 </section>
@@ -452,6 +466,10 @@ and <code class="docutils literal notranslate"><span class="pre">_get_info</span
         <span class="k">while</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agent_location</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_target_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">np_random</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
+        <span class="c1"># clean the render collection and add the initial frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renderer</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renderer</span><span class="o">.</span><span class="n">render_step</span><span class="p">()</span>
+
         <span class="n">observation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_obs</span><span class="p">()</span>
         <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_info</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">observation</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span> <span class="k">if</span> <span class="n">return_info</span> <span class="k">else</span> <span class="n">observation</span>
@@ -472,11 +490,14 @@ accordingly. Since we are using sparse binary rewards in <code class="docutils l
         <span class="bp">self</span><span class="o">.</span><span class="n">_agent_location</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_agent_location</span> <span class="o">+</span> <span class="n">direction</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="p">)</span>
-        <span class="c1"># An episode is done iff the agent has reached the target</span>
+        <span class="c1"># An episode is done if the agent has reached the target</span>
         <span class="n">done</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_agent_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_location</span><span class="p">)</span>
         <span class="n">reward</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">done</span> <span class="k">else</span> <span class="mi">0</span>  <span class="c1"># Binary sparse rewards</span>
         <span class="n">observation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_obs</span><span class="p">()</span>
         <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_info</span><span class="p">()</span>
+
+        <span class="c1"># add a frame to the render collection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renderer</span><span class="o">.</span><span class="n">render_step</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">observation</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 </pre></div>
@@ -486,14 +507,12 @@ accordingly. Since we are using sparse binary rewards in <code class="docutils l
 <h3>Rendering<a class="headerlink" href="#rendering" title="Permalink to this headline">#</a></h3>
 <p>Here, we are using PyGame for rendering. A similar approach to rendering is used in many environments that are included
 with Gym and you can use it as a skeleton for your own environments:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"human"</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"human"</span><span class="p">:</span>
-            <span class="n">pygame</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-            <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_mode</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clock</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"human"</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">clock</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Clock</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">renderer</span><span class="o">.</span><span class="n">get_renders</span><span class="p">()</span>
 
+    <span class="k">def</span> <span class="nf">_render_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">pygame</span> <span class="c1"># avoid global pygame dependency. This method is not called with no-render.</span>
+    
         <span class="n">canvas</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">))</span>
         <span class="n">canvas</span><span class="o">.</span><span class="n">fill</span><span class="p">((</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
         <span class="n">pix_square_size</span> <span class="o">=</span> <span class="p">(</span>
@@ -535,6 +554,7 @@ with Gym and you can use it as a skeleton for your own environments:</p>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"human"</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="c1"># The following line copies our drawings from `canvas` to the visible window</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">canvas</span><span class="p">,</span> <span class="n">canvas</span><span class="o">.</span><span class="n">get_rect</span><span class="p">())</span>
             <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">pump</span><span class="p">()</span>
@@ -553,15 +573,17 @@ with Gym and you can use it as a skeleton for your own environments:</p>
 <section id="close">
 <h3>Close<a class="headerlink" href="#close" title="Permalink to this headline">#</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">close</span></code> method should close any open resources that were used by the environment. In many cases,
-you don’t actually have to bother to implement this method. However, in our example <code class="docutils literal notranslate"><span class="pre">render</span></code> may have
-been called with <code class="docutils literal notranslate"><span class="pre">mode="human"</span></code> and we might need to close the window that has been opened:</p>
+you don’t actually have to bother to implement this method. However, in our example <code class="docutils literal notranslate"><span class="pre">render_mode</span></code> may
+be <code class="docutils literal notranslate"><span class="pre">"human"</span></code> and we might need to close the window that has been opened:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">pygame</span> 
+            
             <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
             <span class="n">pygame</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>In other environments <code class="docutils literal notranslate"><span class="pre">close</span></code>might also close files that were opened
+<p>In other environments <code class="docutils literal notranslate"><span class="pre">close</span></code> might also close files that were opened
 or release other resources. You shouldn’t interact with the environment after having called <code class="docutils literal notranslate"><span class="pre">close</span></code>.</p>
 </section>
 </section>
@@ -577,6 +599,7 @@ or release other resources. You shouldn’t interact with the environment after 
 <span class="p">)</span>
 </pre></div>
 </div>
+<p>The environment ID consists of three components, two of which are optional: an optional namespace (here: <code class="docutils literal notranslate"><span class="pre">gym_examples</span></code>), a mandatory name (here: <code class="docutils literal notranslate"><span class="pre">GridWorld</span></code>) and an optional but recommended version (here: v0). It might have also been registered as <code class="docutils literal notranslate"><span class="pre">GridWorld-v0</span></code> (the recommended approach), <code class="docutils literal notranslate"><span class="pre">GridWorld</span></code> or <code class="docutils literal notranslate"><span class="pre">gym_examples/GridWorld</span></code>, and the appropriate ID should then be used during environment creation.</p>
 <p>The keyword argument <code class="docutils literal notranslate"><span class="pre">max_episode_steps=300</span></code> will ensure that GridWorld environments that are instantiated via <code class="docutils literal notranslate"><span class="pre">gym.make</span></code>
 will be wrapped in a <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code> wrapper (see <a class="reference external" href="https://www.gymlibrary.ml/pages/wrappers/index">the wrapper documentation</a>
 for more information). A done signal will then be produced if the agent has reached the target <em>or</em> 300 steps have been
@@ -611,7 +634,12 @@ executed in the current episode. To distinguish truncation and termination, you 
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p>Whether to wrap the environment in an <code class="docutils literal notranslate"><span class="pre">OrderEnforcing</span></code> wrapper</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kwargs</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">autoreset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Whether to wrap the environment in an <code class="docutils literal notranslate"><span class="pre">AutoResetWrapper</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kwargs</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
 <td><p>The default kwargs to pass to the environment class</p></td>
